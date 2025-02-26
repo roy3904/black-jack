@@ -65,6 +65,7 @@ class Deck{//Linked List
         m_tail = nullptr;
     }
     void appendDeck(Card* card){//Appends card to the end of the deck
+        card->setNext(nullptr);
         if(m_head == nullptr){
             m_head = card;
             m_tail = card;
@@ -115,7 +116,13 @@ class Deck{//Linked List
     void printDeck(){//Prints the deck
         Card* currCard = m_head;
         while(currCard != nullptr){
-            cout << currCard->getName() << ", " << currCard->getValue() << endl;
+            cout << currCard->getName() << ", " << currCard->getValue();
+            /**** *
+            if(currCard->getNext() != nullptr)
+                cout << "next: " << currCard->getNext()->getName() << endl;
+            else
+                cout << endl;
+            **/
             currCard = currCard->getNext();
         }
     }
@@ -153,9 +160,9 @@ class Dealer{//Dealer class that holds cards and can play the game, parent of Pl
     void discard(Deck& deck){
         int size = hand.size();
         for(int i = size - 1; i >=  0; i--){
-            cout << "NOW DISCARDING " << hand.at(i)->getName() << endl;
+            cout << "NOW DISCARDING " << hand.at(i)->getName() << "Whose next node is: " << hand.at(i)->getNext()->getName() << endl;
             deck.appendDeck(hand.at(i));
-            hand.pop_back();
+            //hand.pop_back();
         }
     }
     void printHand(){
@@ -201,6 +208,7 @@ int main(){
     }
     cout << endl << "NOW SHUFFLING DECK" << endl << endl;
     deck1.shuffleDeck();
+    deck1.printDeck();
     Deck discardPile;
     Dealer dealer1;
     dealer1.drawCard(deck1);
