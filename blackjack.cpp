@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cctype>
 using namespace std;
 
 const int DECK_COUNT = 1;
@@ -153,24 +154,30 @@ class Deck{//Linked List
 
 class Dealer{//Dealer class that holds cards and can play the game, parent of Player class.
     public:
-    void drawCard(Deck& deck){
-       hand.push_back(deck.getHead());
-       deck.setHead(deck.getHead()->getNext());
+    void drawCard(Deck& deck, int index){
+        hand[index].push_back(deck.getHead());
+        deck.setHead(deck.getHead()->getNext());
     }
     void discard(Deck& deck){
-        int size = hand.size();
-        for(int i = size - 1; i >=  0; i--){
-            cout << "NOW DISCARDING " << hand.at(i)->getName() << "Whose next node is: " << hand.at(i)->getNext()->getName() << endl;
-            deck.appendDeck(hand.at(i));
-            //hand.pop_back();
+        for(int i = 0; i < 5; i++){
+            int size = hand[i].size();
+            for(int j = size - 1; j >= 0; j--){
+                deck.appendDeck(hand[i].at(j));
+                hand[i].pop_back();
+            }
         }
     }
     void printHand(){
-        for(int i = 0; i < hand.size(); i++)
-            cout << hand.at(i)->getName() << ", " << hand.at(i)->getValue() << endl;
+        for(int i = 0; i < 5; i++){
+            cout << "HAND " << i << ": ";
+            for(int j = 0; j < hand[i].size(); j++){
+                cout << hand[i].at(j)->getName() << ", " << hand[i].at(j)->getValue() << " -> ";
+            }
+            cout << endl;
+        }
     }
     private:
-    vector<Card*> hand;
+    vector<Card*> hand[5];
 };
 
 class Player: public Dealer{
@@ -178,36 +185,87 @@ class Player: public Dealer{
 
 };
 
-int main(){
-    srand(time(0));
-    string types[4] = {" of Spades", " of Hearts", " of Clubs", " of Diamonds"};
-    string unique_values[3] = {"Jack", "Queen", "King"};
-    Deck deck1;
-    Card* newCard;
-    int cardValue;
-    string cardName;
+//global variables
+const string TYPES[4] = {" of Spades", " of Hearts", " of Clubs", " of Diamonds"};
+const string UNIQUE_VALUES[3] = {"Jack", "Queen", "King"};
+
+//function declarations
+void initialize(Deck &deck){//Initializes the deck
     for(int i = 2; i < 15; i++){
+        Card* newCard;
+        int cardValue;
+        string cardName;
         for(int k = 1; k < 5; k++){
             if(i == 14){
                 cardValue = 11;
-                cardName = "Ace" + types[k-1];
+                cardName = "Ace" + TYPES[k-1];
             }
             else if(i > 10){
                 cardValue = 10;
-                cardName = unique_values[13 - i] + types[k-1];
+                cardName = UNIQUE_VALUES[13 - i] + TYPES[k-1];
             }
             else{
                 cardValue = i;
-                cardName = to_string(i) + types[k-1];
+                cardName = to_string(i) + TYPES[k-1];
             }
             for(int i = 0; i < DECK_COUNT; i++){
                 newCard = new Card(cardValue, k, cardName, nullptr);
-                deck1.appendDeck(newCard);
+                deck.appendDeck(newCard);
             }    
         }
     }
+}
+void playRound(Deck &deck, Deck &discardDeck, Dealer dealer){//Plays 1 round of blackjack through
+    string strHandSize = "-1";
+    int handSize = stoi(strHandSize);
+    while(handSize < 1 || handSize > 5){
+        cout << "Choose hand size from 1-5: ";
+        getline(cin, strHandSize);
+        handSize = stoi(strHandSize);
+        cout << endl;
+        if(handSize < 1 || handSize > 5){
+            cout << "THAT IS AN INVALID HANDSIZE" << endl;
+        }
+    }
+    for(int a = 0; a < 2; a++){
+        for(int i = 0; i < 5; i++){
+            dealer.drawCard(deck, i);
+        }
+    }
+    dealer.printHand();
+    dealer.discard(discardDeck);
+    dealer.printHand();
+    discardDeck.printDeck();
+}
+void mainMenu(Deck &deck, Deck &discardDeck, Dealer dealer){//Function that displays and adds functionality to the main menu
+    cout << "Welcome to FAIR Black Jack ;): " << endl << endl << "1. Play Game" << endl << "2. Configure Rules" << endl << "3. Quit" << endl << "--------------------------------" <<endl << "->";
+    string response;
+    getline(cin, response);
+
+    for(char &c : response){
+        c = tolower(c);
+    }
+
+    cout << endl;
+    if(response == "1" || response == "play" || response == "game" || response == "play game"){
+        playRound(deck, discardDeck, dealer);
+    }
+    else if(response == "2" || response == "configure" || response == "rules" || response == "configure rules"){
+        cout << "No settings currently implemented" << endl;
+    }
+    else if(response == "3" || response == "quit"){
+        exit(0);
+    }
+}
+int main(){
+    srand(time(0));
+    Deck deck1;
+    Deck deck2;
+    initialize(deck1);
     cout << endl << "NOW SHUFFLING DECK" << endl << endl;
     deck1.shuffleDeck();
+    Dealer dealer1;
+    /****************
     deck1.printDeck();
     Deck discardPile;
     Dealer dealer1;
@@ -216,5 +274,9 @@ int main(){
     dealer1.drawCard(deck1);
     dealer1.printHand();
     dealer1.discard(discardPile);
-    discardPile.printDeck();//In this example, last 2 are infinitely looping when printing. Solve this before moving on.
+    discardPile.printDeck();
+    ********************/
+    while(1){
+        mainMenu(deck1, deck2, dealer1);
+    }
 }
