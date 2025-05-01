@@ -4,8 +4,6 @@
 #include <cctype>
 using namespace std;
 
-const int DECK_COUNT = 1;
-
 //Class Declarations
 
 class Card{//Node in linked list
@@ -176,6 +174,14 @@ class Dealer{//Dealer class that holds cards and can play the game, parent of Pl
             cout << endl;
         }
     }
+    int naturalCheck(){
+        for(int i = 0; i < 5; i++){
+            if(hand[i].size() == 2){
+                if((hand[i][0]->getValue() + hand[i][1]->getValue()) == 21) return i;
+            }
+        }
+        return -1;
+    }
     private:
     vector<Card*> hand[5];
 };
@@ -188,6 +194,7 @@ class Player: public Dealer{
 //global variables
 const string TYPES[4] = {" of Spades", " of Hearts", " of Clubs", " of Diamonds"};
 const string UNIQUE_VALUES[3] = {"Jack", "Queen", "King"};
+const int DECK_COUNT = 6;
 
 //function declarations
 void initialize(Deck &deck){//Initializes the deck
@@ -215,7 +222,7 @@ void initialize(Deck &deck){//Initializes the deck
         }
     }
 }
-void playRound(Deck &deck, Deck &discardDeck, Dealer dealer){//Plays 1 round of blackjack through
+void playRound(Deck &deck, Deck &discardDeck, Dealer dealer, Player player){//Plays 1 round of blackjack through
     string strHandSize = "-1";
     int handSize = stoi(strHandSize);
     while(handSize < 1 || handSize > 5){
@@ -228,16 +235,23 @@ void playRound(Deck &deck, Deck &discardDeck, Dealer dealer){//Plays 1 round of 
         }
     }
     for(int a = 0; a < 2; a++){
-        for(int i = 0; i < 5; i++){
-            dealer.drawCard(deck, i);
+        for(int i = 0; i < handSize; i++){
+            player.drawCard(deck, i);
         }
+        dealer.drawCard(deck, 0);
     }
-    dealer.printHand();
+
+    if(player.naturalCheck() != -1){
+        cout << "FOUND NATURAL IN HAND: " << player.naturalCheck() << endl; 
+    }
+    if(dealer.naturalCheck() != -1){
+        cout << "FOUND NATURAL IN DEALER" << endl;
+    }
+
+    player.discard(discardDeck);
     dealer.discard(discardDeck);
-    dealer.printHand();
-    discardDeck.printDeck();
 }
-void mainMenu(Deck &deck, Deck &discardDeck, Dealer dealer){//Function that displays and adds functionality to the main menu
+void mainMenu(Deck &deck, Deck &discardDeck, Dealer dealer, Player player){//Function that displays and adds functionality to the main menu
     cout << "Welcome to FAIR Black Jack ;): " << endl << endl << "1. Play Game" << endl << "2. Configure Rules" << endl << "3. Quit" << endl << "--------------------------------" <<endl << "->";
     string response;
     getline(cin, response);
@@ -248,7 +262,7 @@ void mainMenu(Deck &deck, Deck &discardDeck, Dealer dealer){//Function that disp
 
     cout << endl;
     if(response == "1" || response == "play" || response == "game" || response == "play game"){
-        playRound(deck, discardDeck, dealer);
+        playRound(deck, discardDeck, dealer, player);
     }
     else if(response == "2" || response == "configure" || response == "rules" || response == "configure rules"){
         cout << "No settings currently implemented" << endl;
@@ -265,6 +279,7 @@ int main(){
     cout << endl << "NOW SHUFFLING DECK" << endl << endl;
     deck1.shuffleDeck();
     Dealer dealer1;
+    Player player1;
     /****************
     deck1.printDeck();
     Deck discardPile;
@@ -277,6 +292,6 @@ int main(){
     discardPile.printDeck();
     ********************/
     while(1){
-        mainMenu(deck1, deck2, dealer1);
+        mainMenu(deck1, deck2, dealer1, player1);
     }
 }
