@@ -114,8 +114,9 @@ class Deck{//Linked List
     }
     void printDeck(){//Prints the deck
         Card* currCard = m_head;
+        int count = 1;
         while(currCard != nullptr){
-            cout << currCard->getName() << ", " << currCard->getValue();
+            cout << "CARD " << count << ": " << currCard->getName() << ", " << currCard->getValue() << endl;
             /**** *
             if(currCard->getNext() != nullptr)
                 cout << "next: " << currCard->getNext()->getName() << endl;
@@ -123,6 +124,7 @@ class Deck{//Linked List
                 cout << endl;
             **/
             currCard = currCard->getNext();
+            count++;
         }
     }
     int getSize(){
@@ -137,11 +139,18 @@ class Deck{//Linked List
     void setHead(Card* card){
         m_head = card;
     }
+    void setTail(Card* card){
+        m_tail = card;
+    }
+    void setSize(int num){
+        m_size = num;
+    }
     Card* takeTop(){
         Card* chosenCard = m_head;
         m_head = m_head->getNext();
         cout << m_head->getNext()->getValue() << endl;
         cout << chosenCard->getValue() << " " << m_head->getValue() << endl;
+        m_size--;
         return chosenCard;
     }
     private:
@@ -155,6 +164,7 @@ class Dealer{//Dealer class that holds cards and can play the game, parent of Pl
     void drawCard(Deck& deck, int index){
         hand[index].push_back(deck.getHead());
         deck.setHead(deck.getHead()->getNext());
+        deck.setSize(deck.getSize() - 1);
     }
     void discard(Deck& deck){
         for(int i = 0; i < 5; i++){
@@ -165,14 +175,10 @@ class Dealer{//Dealer class that holds cards and can play the game, parent of Pl
             }
         }
     }
-    void printHand(){
-        for(int i = 0; i < 5; i++){
-            cout << "HAND " << i << ": ";
-            for(int j = 0; j < hand[i].size(); j++){
-                cout << hand[i].at(j)->getName() << ", " << hand[i].at(j)->getValue() << " -> ";
-            }
-            cout << endl;
-        }
+    virtual void printHand(){
+        cout << "DEALER HAND: " << hand[0].at(0)->getName() << ", " << hand[0].at(0)->getValue() << " -> "
+        << "Card Hidden";
+        cout << endl;
     }
     int naturalCheck(){
         for(int i = 0; i < 5; i++){
@@ -182,19 +188,48 @@ class Dealer{//Dealer class that holds cards and can play the game, parent of Pl
         }
         return -1;
     }
-    private:
+    protected:
     vector<Card*> hand[5];
 };
 
 class Player: public Dealer{
     public:
+    virtual void printHand(){
+        for(int i = 0; i < 5; i++){
+            cout << "HAND " << i << ": ";
+            for(int j = 0; j < hand[i].size(); j++){
+                cout << hand[i].at(j)->getName() << ", " << hand[i].at(j)->getValue() << " -> ";
+            }
+            cout << endl;
+        }
+    }
+    void playTurn(Deck& deck){
+        for(int i = 0; i < 5; i++){
+            if(hand[i].size() > 0){
+                string strChoice = "-1";
+                int choice = stoi(strChoice);
+                while(choice < 1 && choice > 2){
+                    cout << "What would you like to do with hand " << i + 1 << "?" << endl << endl;
+                    cout << endl << "1. Stay Hand" << endl;
+                    cout << "2. Draw from Deck" << endl;
+                    getline(cin, strChoice);
+                    choice = stoi(strChoice);
+                    if(choice == 1){
 
+                    }
+                    if(choice == 2){
+
+                    }
+                }
+            }
+        }
+    }
 };
 
 //global variables
 const string TYPES[4] = {" of Spades", " of Hearts", " of Clubs", " of Diamonds"};
 const string UNIQUE_VALUES[3] = {"Jack", "Queen", "King"};
-const int DECK_COUNT = 6;
+const int DECK_COUNT = 1;
 
 //function declarations
 void initialize(Deck &deck){//Initializes the deck
@@ -222,6 +257,14 @@ void initialize(Deck &deck){//Initializes the deck
         }
     }
 }
+void stackDeck(Deck &deck1, Deck &deck2){
+    deck2.getTail()->setNext(deck1.getHead());
+    deck1.setHead(deck2.getHead());
+    deck2.setHead(nullptr);
+    deck2.setTail(nullptr);
+    deck1.setSize(deck1.getSize() + deck2.getSize());
+    deck2.setSize(0);
+}
 void playRound(Deck &deck, Deck &discardDeck, Dealer dealer, Player player){//Plays 1 round of blackjack through
     string strHandSize = "-1";
     int handSize = stoi(strHandSize);
@@ -248,8 +291,15 @@ void playRound(Deck &deck, Deck &discardDeck, Dealer dealer, Player player){//Pl
         cout << "FOUND NATURAL IN DEALER" << endl;
     }
 
+    player.playTurn(deck);
+
     player.discard(discardDeck);
     dealer.discard(discardDeck);
+
+    if(deck.getSize() <= 52){
+        stackDeck(deck, discardDeck);
+        deck.shuffleDeck();
+    }
 }
 void mainMenu(Deck &deck, Deck &discardDeck, Dealer dealer, Player player){//Function that displays and adds functionality to the main menu
     cout << "Welcome to FAIR Black Jack ;): " << endl << endl << "1. Play Game" << endl << "2. Configure Rules" << endl << "3. Quit" << endl << "--------------------------------" <<endl << "->";
