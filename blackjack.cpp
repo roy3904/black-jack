@@ -180,6 +180,18 @@ class Dealer{//Dealer class that holds cards and can play the game, parent of Pl
         << "Card Hidden";
         cout << endl;
     }
+    virtual void manageTurn(Deck& deck, int handValues[]){
+        int sum = 0;
+        int i = 0;
+        while(sum < 17){
+            if(i > 1){
+                drawCard(deck, 0);
+            }
+            sum += hand[0].at(i)->getValue();
+
+        }
+        handValues[5] = sum;
+    }
     int naturalCheck(){
         for(int i = 0; i < 5; i++){
             if(hand[i].size() == 2){
@@ -203,22 +215,50 @@ class Player: public Dealer{
             cout << endl;
         }
     }
-    void playTurn(Deck& deck){
+    virtual void manageTurn(Deck& deck, int handValues[]){
+        int sum;
         for(int i = 0; i < 5; i++){
             if(hand[i].size() > 0){
                 string strChoice = "-1";
                 int choice = stoi(strChoice);
-                while(choice < 1 && choice > 2){
-                    cout << "What would you like to do with hand " << i + 1 << "?" << endl << endl;
-                    cout << endl << "1. Stay Hand" << endl;
+                while(choice != 1){
+                    sum = 0;
+                    cout << "What would you like to do with hand " << i + 1 << "?: ";
+                    for(int j = 0; j < hand[i].size(); j++){
+                        cout << hand[i].at(j)->getName() << ", " << hand[i].at(j)->getValue() << " -> ";
+                        sum += hand[i].at(j)->getValue();
+                    }
+                    cout << "Sum = " << sum << endl << endl;
+
+                    if(sum == 21){
+                        cout << "Your hand is already 21! Automatic stay." << endl;
+                        break;
+                    }
+
+                    cout << "1. Stay Hand" << endl;
                     cout << "2. Draw from Deck" << endl;
                     getline(cin, strChoice);
                     choice = stoi(strChoice);
                     if(choice == 1){
-
+                        handValues[i] = sum;
                     }
-                    if(choice == 2){
+                    else if(choice == 2){
+                        sum+= deck.getHead()->getValue();
+                        drawCard(deck, i);
+                    }
 
+                    if(sum > 21){
+                        cout << "Your hand has busted!" << endl;
+                        handValues[i] = sum;
+                        break;
+                    }
+                    else if(sum == 21){
+                        cout << "You now have 21 in hand. Nice!" << endl;
+                        handValues[i] = 21;
+                        break;
+                    }
+                    else if(sum < 21 && choice == 2){
+                        choice = -1;
                     }
                 }
             }
@@ -265,6 +305,33 @@ void stackDeck(Deck &deck1, Deck &deck2){
     deck1.setSize(deck1.getSize() + deck2.getSize());
     deck2.setSize(0);
 }
+void winChecker(int handValues[], int winArray[]){//Value of 1 = win, Value of 0 = Hand not played, Value of -1 = Hand lost, Value of -2 = Hands Tied
+    if(handValues[5] > 21){
+        for(int i = 0; i < 5; i++){
+            if(handValues[i] != 0 && handValues[i] < 22){
+                winArray[i] = 1;
+            }
+            else if(handValues[i] > 21){
+                winArray[i] = -2;
+            }
+        }
+    }
+    else{
+        for(int i = 0; i < 5; i++){
+            if(handValues[i] != 0){
+                if((handValues[i] > handValues[5] && handValues[i] < 22)){
+                    winArray[i] = 1;
+                }
+                else if(handValues[i] == handValues[5]){
+                    winArray[i] = -2;
+                }
+                else{
+                    winArray[i] = -1;
+                }
+            }
+        }
+    }
+}
 void playRound(Deck &deck, Deck &discardDeck, Dealer dealer, Player player){//Plays 1 round of blackjack through
     string strHandSize = "-1";
     int handSize = stoi(strHandSize);
@@ -291,7 +358,12 @@ void playRound(Deck &deck, Deck &discardDeck, Dealer dealer, Player player){//Pl
         cout << "FOUND NATURAL IN DEALER" << endl;
     }
 
-    player.playTurn(deck);
+    int handValues[6] = {0};
+    player.manageTurn(deck, handValues);
+    dealer.manageTurn(deck, handValues);
+    
+    int winArray[5] = {0};
+    
 
     player.discard(discardDeck);
     dealer.discard(discardDeck);
