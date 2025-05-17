@@ -183,12 +183,23 @@ class Dealer{//Dealer class that holds cards and can play the game, parent of Pl
     virtual void manageTurn(Deck& deck, int handValues[]){
         int sum = 0;
         int i = 0;
+        int aceCount = 0;
         while(sum < 17){
             if(i > 1){
                 drawCard(deck, 0);
             }
             sum += hand[0].at(i)->getValue();
-
+            if(hand[0].at(i)->getValue() == 11){
+                aceCount++;
+            }
+            cout << "Dealer Card " << i + 1 << ": " << hand[0].at(i)->getName() << endl;
+            if(sum > 21){
+                while(sum > 21 && aceCount != 0){
+                    aceCount--;
+                    sum -=10;
+                }
+            }
+            i++;
         }
         handValues[5] = sum;
     }
@@ -217,6 +228,7 @@ class Player: public Dealer{
     }
     virtual void manageTurn(Deck& deck, int handValues[]){
         int sum;
+        int aceCount = 0;
         for(int i = 0; i < 5; i++){
             if(hand[i].size() > 0){
                 string strChoice = "-1";
@@ -227,14 +239,25 @@ class Player: public Dealer{
                     for(int j = 0; j < hand[i].size(); j++){
                         cout << hand[i].at(j)->getName() << ", " << hand[i].at(j)->getValue() << " -> ";
                         sum += hand[i].at(j)->getValue();
+                        if(hand[i].at(j)->getValue() == 11){
+                            aceCount++;
+                        }
                     }
-                    cout << "Sum = " << sum << endl << endl;
 
                     if(sum == 21){
                         cout << "Your hand is already 21! Automatic stay." << endl;
+                        handValues[i] = sum;
                         break;
                     }
+                    else if(sum > 21){
+                        for(int j = 0; j < hand[i].size(); j++){
+                            if(hand[i].at(j)->getValue() == 11 && sum > 21){
+                                sum -= 10;
+                            }
+                        }
+                    }
 
+                    cout << "Sum = " << sum << endl << endl;
                     cout << "1. Stay Hand" << endl;
                     cout << "2. Draw from Deck" << endl;
                     getline(cin, strChoice);
@@ -248,9 +271,15 @@ class Player: public Dealer{
                     }
 
                     if(sum > 21){
-                        cout << "Your hand has busted!" << endl;
-                        handValues[i] = sum;
-                        break;
+                        if(hand[i].at(hand[i].size() - 1)->getValue() == 11){
+                            sum -= 10;
+                            choice = -1;
+                        }
+                        else{
+                            cout << "Your hand has busted!" << endl;
+                            handValues[i] = sum;
+                            break;
+                        }
                     }
                     else if(sum == 21){
                         cout << "You now have 21 in hand. Nice!" << endl;
@@ -363,8 +392,20 @@ void playRound(Deck &deck, Deck &discardDeck, Dealer dealer, Player player){//Pl
     dealer.manageTurn(deck, handValues);
     
     int winArray[5] = {0};
-    
 
+    winChecker(handValues, winArray);
+    for(int i = 0; i < handSize; i++){
+        cout << "Hand " << i << ": ";
+        if(winArray[i] == 1){
+            cout << "WIN" << endl;
+        }
+        else if(winArray[i] == -1){
+            cout << "LOSE" << endl;
+        }
+        else if(winArray[i] == -2){
+            cout << "TIE" << endl;
+        }
+    }
     player.discard(discardDeck);
     dealer.discard(discardDeck);
 
@@ -402,17 +443,6 @@ int main(){
     deck1.shuffleDeck();
     Dealer dealer1;
     Player player1;
-    /****************
-    deck1.printDeck();
-    Deck discardPile;
-    Dealer dealer1;
-    dealer1.drawCard(deck1);
-    dealer1.drawCard(deck1);
-    dealer1.drawCard(deck1);
-    dealer1.printHand();
-    dealer1.discard(discardPile);
-    discardPile.printDeck();
-    ********************/
     while(1){
         mainMenu(deck1, deck2, dealer1, player1);
     }
