@@ -18,6 +18,7 @@ class Card{
     int m_type;
     string m_name;
     Card* m_next_card;
+    Card* m_split_card;
 };
 class Deck{
     public:
@@ -59,8 +60,12 @@ class Player: public Dealer{
     virtual void printHand();
     virtual void manageTurn(Deck& deck, int handValues[]);
     void aiManageTurn(Deck& deck, int handValues[]);
+    void drawSplitInit(Deck& deck, int index);
+    void drawSplit(Deck& deck, int index);
+    void discardSplit(Deck& deck);
     private:
     bool m_isAI;
+    vector<Card*> splitHand[5];
 };
 
 extern const string TYPES[4];
