@@ -164,7 +164,7 @@ void Dealer::printHand(){
     << "Card Hidden";
     cout << endl;
 }
-void Dealer::manageTurn(Deck& deck, int handValues[], bool ai){
+void Dealer::manageTurn(Deck& deck, int handValues[], bool ai){//Manages the dealer turn, give true to ai boolean to avoid printing dealer's cards
     int sum = 0;
     int i = 0;
     int aceCount = 0;
@@ -189,7 +189,7 @@ void Dealer::manageTurn(Deck& deck, int handValues[], bool ai){
     }
     handValues[10] = sum;
 }
-int Dealer::naturalCheck(){
+int Dealer::naturalCheck(){//Check if a hand's first 2 cards make up 21
     for(int i = 0; i < 5; i++){
         if(hand[i].size() == 2){
             if((hand[i][0]->getValue() + hand[i][1]->getValue()) == 21) return i;
@@ -213,13 +213,13 @@ void Player::printHand(){
         cout << endl;
     }
 }
-void Player::manageTurn(Deck& deck, int handValues[]){
+void Player::manageTurn(Deck& deck, int handValues[]){//Gives Player options to play their turn
     int sum;
     int splitSum;
     int aceCount;
     int splitAceCount;
     bool canSplit;
-    for(int i = 0; i < 5; i++){
+    for(int i = 0; i < 10; i++){
         if(hand[i].size() > 0){
             string strChoice = "-1";
             int choice = stoi(strChoice);
@@ -229,7 +229,6 @@ void Player::manageTurn(Deck& deck, int handValues[]){
                 splitSum = 0;
                 aceCount = 0;
                 splitAceCount = 0;
-                cout << "What would you like to do with hand " << i + 1 << "?: ";
                 for(int j = 0; j < hand[i].size(); j++){
                     cout << hand[i].at(j)->getName() << ", " << hand[i].at(j)->getValue() << " -> ";
                     sum += hand[i].at(j)->getValue();
@@ -237,11 +236,13 @@ void Player::manageTurn(Deck& deck, int handValues[]){
                         aceCount++;
                     }
                 }
+
                 if(sum == 21){
                     cout << "Your hand is already 21! Automatic stay." << endl;
                     handValues[i] = sum;
                     break;
                 }
+
                 else if(sum > 21){
                     for(int j = 0; j < hand[i].size(); j++){
                         if(hand[i].at(j)->getValue() == 11 && sum > 21){
@@ -249,13 +250,23 @@ void Player::manageTurn(Deck& deck, int handValues[]){
                         }
                     }
                 }
+                if(i != 9){
+                    if(hand[i].at(0)->getValue() == hand[i].at(1)->getValue() && hand[i + 1].size() == 0 && i % 2 == 0){
+                        canSplit = true;
+                    }
+                }
 
+                if(i % 2 == 1){
+                    cout << "What would you like to do with split hand " << i / 2 + 1 << "?: ";
+                }
+                else{
+                    cout << "What would you like to do with hand " << i / 2 + 1 << "?: ";
+                }
                 cout << "Sum = " << sum << endl << endl;
                 cout << "1. Stay Hand" << endl;
                 cout << "2. Draw from Deck" << endl;
-                if(splitHand[i].size() == 0 && hand[i].at(0)->getValue() == hand[i].at(1)->getValue()){
+                if(canSplit == true){
                     cout << "3. Split Hand" << endl;
-                    canSplit = true;
                 }
                 getline(cin, strChoice);
                 choice = stoi(strChoice);
@@ -267,9 +278,11 @@ void Player::manageTurn(Deck& deck, int handValues[]){
                     drawCard(deck, i);
                 }
                 else if(choice == 3 && canSplit == true){
-                    splitHand[i].push_back(hand[i].at(1));
+                    hand[i + 1].push_back(hand[i].at(1));
                     hand[i].pop_back();
-                    drawSplitInit(deck, i);
+
+                    drawCard(deck, i);
+                    drawCard(deck, i + 1);
                 }
 
                 if(sum > 21){
@@ -293,68 +306,7 @@ void Player::manageTurn(Deck& deck, int handValues[]){
                 }
             }
         }
-        if(splitHand[i].size() > 0){
-            string strChoice = "-1";
-            int choice = stoi(strChoice);
-            while(choice != 1){
-                canSplit = false;
-                splitSum = 0;
-                splitAceCount = 0;
-                cout << "What would you like to do with split hand " << i + 1 << "?: ";
-                for(int j = 0; j < splitHand[i].size(); j++){
-                    cout << splitHand[i].at(j)->getName() << ", " << splitHand[i].at(j)->getValue() << " -> ";
-                    splitSum += splitHand[i].at(j)->getValue();
-                    if(splitHand[i].at(j)->getValue() == 11){
-                        splitAceCount++;
-                    }
-                }
-                if(splitSum == 21){
-                    cout << "Your hand is already 21! Automatic stay." << endl;
-                    handValues[i + 5] = splitSum;
-                    break;
-                }
-                else if(splitSum > 21){
-                    for(int j = 0; j < splitHand[i].size(); j++){
-                        if(splitHand[i].at(j)->getValue() == 11 && splitSum > 21){
-                            splitSum -= 10;
-                        }
-                    }
-                }
-
-                cout << "Split Sum = " << splitSum << endl;
-                cout << "1. Stay Hand" << endl;
-                cout << "2. Draw from Deck" << endl;
-                getline(cin, strChoice);
-                choice = stoi(strChoice);
-                if(choice == 1){
-                    handValues[i + 5] = splitSum;
-                }
-                else if(choice == 2){
-                    splitSum+= deck.getHead()->getValue();
-                    drawSplit(deck, i);
-                }
-
-                if(splitSum > 21){
-                    if(hand[i].at(hand[i].size() - 1)->getValue() == 11){
-                        splitSum -= 10;
-                        choice = -1;
-                    }
-                    else{
-                        cout << "Your hand has busted!" << endl;
-                        handValues[i + 5] = splitSum;
-                        break;
-                    }
-                }
-                if(splitSum == 21){
-                    cout << "You now have 21 in hand. Nice!" << endl;
-                    handValues[i + 5] = 21;
-                    break;
-                }
-                else if(splitSum < 21 && choice == 2){
-                    choice = -1;
-                }
-            }
-        }
+        
     }
 }
 void Player::aiManageTurn(Deck& deck, int handValues[]){
@@ -416,29 +368,6 @@ void Player::aiManageTurn(Deck& deck, int handValues[]){
                     choice = -1;
                 }
             }
-        }
-    }
-}
-void Player::drawSplitInit(Deck& deck, int index){
-    hand[index].push_back(deck.getHead());
-    deck.setHead(deck.getHead()->getNext());
-    deck.setSize(deck.getSize() - 1);
-
-    splitHand[index].push_back(deck.getHead());
-    deck.setHead(deck.getHead()->getNext());
-    deck.setSize(deck.getSize() - 1);
-}
-void Player::drawSplit(Deck& deck, int index){
-    splitHand[index].push_back(deck.getHead());
-    deck.setHead(deck.getHead()->getNext());
-    deck.setSize(deck.getSize() - 1);
-}
-void Player::discardSplit(Deck& deck){
-    for(int i = 0; i < 5; i++){
-        int size = splitHand[i].size();
-        for(int j = size - 1; j >= 0; j--){
-            deck.appendDeck(splitHand[i].at(j));
-            splitHand[i].pop_back();
         }
     }
 }
@@ -530,7 +459,7 @@ void playRound(Deck &deck, Deck &discardDeck, Dealer dealer, Player player, int 
         }
     }
     for(int a = 0; a < 2; a++){
-        for(int i = 0; i < handSize; i++){
+        for(int i = 0; i < handSize * 2; i = i + 2){
             player.drawCard(deck, i);
         }
         dealer.drawCard(deck, 0);
@@ -553,7 +482,10 @@ void playRound(Deck &deck, Deck &discardDeck, Dealer dealer, Player player, int 
     if(player.getAI() == false){
         for(int i = 0; i < 10; i++){
             if(winArray[i] != 0){
-                cout << "Hand " << ((i > 4) ? i - 4 : i + 1) << ((i > 4) ? " Split: " : ": ");
+                if(i % 2 == 1){
+                    cout << "Split";
+                }
+                cout << "Hand " << (i / 2) + 1 << ": ";
             }
             
             if(winArray[i] == 1){
@@ -568,7 +500,7 @@ void playRound(Deck &deck, Deck &discardDeck, Dealer dealer, Player player, int 
         }
     }
 
-    for(int i = 0; i < handSize; i++){
+    for(int i = 0; i < handSize * 2; i++){
         gameTable[dealer.getHand(0).at(0)->getValue() - 2][handValues[i] - 2]++;
         if(winArray[i] == 1){
             winTable[dealer.getHand(0).at(0)->getValue() - 2][handValues[i] - 2]++;
@@ -576,7 +508,7 @@ void playRound(Deck &deck, Deck &discardDeck, Dealer dealer, Player player, int 
     }
 
     player.discard(discardDeck);
-    player.discardSplit(discardDeck);
+    //player.discardSplit(discardDeck);
     dealer.discard(discardDeck);
 
     if(deck.getSize() <= 52){

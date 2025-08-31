@@ -51,7 +51,7 @@ class Dealer{
     virtual void manageTurn(Deck& deck, int handValues[], bool ai);
     int naturalCheck();
     protected:
-    vector<Card*> hand[5];
+    vector<Card*> hand[10];
 };
 class Player: public Dealer{
     public:
@@ -60,12 +60,8 @@ class Player: public Dealer{
     virtual void printHand();
     virtual void manageTurn(Deck& deck, int handValues[]);
     void aiManageTurn(Deck& deck, int handValues[]);
-    void drawSplitInit(Deck& deck, int index);
-    void drawSplit(Deck& deck, int index);
-    void discardSplit(Deck& deck);
     private:
     bool m_isAI;
-    vector<Card*> splitHand[5];
 };
 
 extern const string TYPES[4];
