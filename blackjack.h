@@ -4,6 +4,13 @@
 #include <cctype>
 using namespace std;
 
+extern const string TYPES[4];
+extern const string UNIQUE_VALUES[3];
+extern const int DECK_COUNT;
+extern const int AI_STAY_COUNT;
+extern const int AI_HAND_SIZE;
+extern const int MAX_HAND_SIZE;
+
 class Card{
     public:
     Card();
@@ -51,24 +58,20 @@ class Dealer{
     virtual void manageTurn(Deck& deck, int handValues[], bool ai);
     int naturalCheck();
     protected:
-    vector<Card*> hand[10];
+    vector<Card*> hand[10];//Double the amount you want your max hand size to be, every other index will be room for a split hand
 };
 class Player: public Dealer{
     public:
     Player(bool ai);
     bool getAI();
-    virtual void printHand();
+    virtual void printHand(int index);
     virtual void manageTurn(Deck& deck, int handValues[]);
     void aiManageTurn(Deck& deck, int handValues[]);
+    int handValueSum(int index);
+    bool canSplit(int index);
     private:
     bool m_isAI;
 };
-
-extern const string TYPES[4];
-extern const string UNIQUE_VALUES[3];
-extern const int DECK_COUNT;
-extern const int AI_STAY_COUNT;
-extern const int AI_HAND_SIZE;
 
 void initialize(Deck& deck);
 void stackDeck(Deck &deck1, Deck &deck2);
