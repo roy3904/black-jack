@@ -204,6 +204,12 @@ Player::Player(bool ai){
 bool Player::getAI(){
     return m_isAI;
 }
+void Player::setMoney(int money){
+    m_money = money;
+}
+int Player::getMoney(){
+    return m_money;
+}
 void Player::printHand(int index){
     for(int i = 0; i < hand[index].size(); i++){
         cout << hand[index].at(i)->getName() << ", " << hand[index].at(i)->getValue() << " -> ";
@@ -403,6 +409,14 @@ void stackDeck(Deck &deck1, Deck &deck2){
     deck2.setTail(nullptr);
     deck1.setSize(deck1.getSize() + deck2.getSize());
     deck2.setSize(0);
+}
+void initializeMoney(Player player){
+    string stringMoney;
+    cout << "How much money do you want to start with?: $";
+    getline(cin, stringMoney);
+    
+    player.setMoney(stoi(stringMoney));
+    cout << "Money Successfully Set!" << endl << endl;
 }
 void winChecker(int handValues[], int winArray[]){//Value of 1 = win, Value of 0 = Hand not played, Value of -1 = Hand lost, Value of -2 = Hands Tied
     if(handValues[10] > 21){

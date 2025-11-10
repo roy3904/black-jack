@@ -64,6 +64,8 @@ class Player: public Dealer{
     public:
     Player(bool ai);
     bool getAI();
+    void setMoney(int money);
+    int getMoney();
     virtual void printHand(int index);
     virtual void manageTurn(Deck& deck, int handValues[]);
     void aiManageTurn(Deck& deck, int handValues[]);
@@ -71,10 +73,12 @@ class Player: public Dealer{
     bool canSplit(int index);
     private:
     bool m_isAI;
+    int m_money;
 };
 
 void initialize(Deck& deck);
 void stackDeck(Deck &deck1, Deck &deck2);
+void initializeMoney(Player player);
 void winChecker(int handValues[], int winArray[]);
 void playRound(Deck &deck, Deck &discardDeck, Dealer dealer, Player player, int gameTable[][31], int winTable[][31]);
 void mainMenu(Deck &deck, Deck &discardDeck, Dealer dealer, Player player, int gameTable[][31], int winTable[][31]);

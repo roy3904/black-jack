@@ -9,3 +9,6 @@ test: blackjack.o test.cpp
 
 blackjack.o: blackjack.cpp blackjack.h
 		$(CXX) $(CXXFLAGS) -c blackjack.cpp
+
+clean:
+		del blackjack.exe blackjack.o test.exe
